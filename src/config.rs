@@ -1,5 +1,7 @@
 use serde::{Serialize, Deserialize};
 
+#[derive(Debug, Default, PartialEq, Serialize, Deserialize)]
+#[serde(default)]
 pub struct Config {
     global: GlobalConfig,
     text_generation_webui: TextGenerationWebuiConfig,
@@ -7,11 +9,11 @@ pub struct Config {
 }
 
 
+
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
+#[serde(default)]
 pub struct GlobalConfig {
-    #[serde(default)]
     config_dir: String,
-    #[serde(default)]
     data_dir: String,
 }
 
@@ -26,21 +28,20 @@ impl Default for GlobalConfig {
 
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
+#[serde(default)]
 pub struct TextGenerationWebuiConfig {
     host: String,
     character: Option<String>,
     model: String,
     update_history: bool,
-    #[serde(default)]
     character_dir: String,
-    #[serde(default)]
     history_dir: String,
 }
 
 impl Default for TextGenerationWebuiConfig {
     fn default() -> Self {
         Self{
-            host: "".to_string(),
+            host: "http://localhost:5000".to_string(),
             character: None,
             model: "".to_string(),
             update_history: false,
@@ -57,3 +58,26 @@ pub struct MatrixConfig {
     password: Option<String>,
     token: Option<String>,
 }
+
+#[cfg(test)]
+mod tests{
+    use super::*;
+
+    #[test]
+    fn parse_minimum_config(){
+        let yaml = r#"global:
+text_generation_webui:
+  model: test_model
+"#;
+        let config: Config = serde_yaml::from_str(yaml).unwrap();
+        assert_eq!( config, Config{
+            global: GlobalConfig::default(),
+            text_generation_webui: TextGenerationWebuiConfig{
+                model: "test_model".to_string(),
+            ..Default::default()
+            },
+            matrix: None,
+        });
+    }
+}
+
