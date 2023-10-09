@@ -1,0 +1,15 @@
+[package]
+name = "text-generation-webui-chatbot-rs"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+clap = { version = "4.4.6", features = ["derive"] }
+matrix-sdk = "0.6.2"
+serde = { version = "1.0.188", features = ["derive"] }
+serde_json = "1.0.107"
+serde_yaml = "0.9.25"
+text-generation-webui-api = { git = "https://github.com/fluo10/text-generation-webui-api-rs", version = "0.1.0", rename="api"}
+thiserror = "1.0.49"
