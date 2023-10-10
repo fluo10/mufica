@@ -1,11 +1,24 @@
 use serde::{Serialize, Deserialize};
 
-#[derive(Debug, Default, PartialEq, Serialize, Deserialize)]
-#[serde(default)]
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct Config {
     global: GlobalConfig,
-    text_generation_webui: TextGenerationWebuiConfig,
-    matrix: Option<MatrixConfig>,
+    #[serde(with = "serde_yaml::with::singleton_map_recursive")]
+    frontends: Vec<FrontendConfig>,
+    #[serde(with = "serde_yaml::with::singleton_map")]
+    backend: BackendConfig
+}
+
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum FrontendConfig{
+    Matrix(MatrixConfig),
+}
+
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum BackendConfig{
+    TextGenerationWebui(TextGenerationWebuiConfig),
 }
 
 
@@ -66,17 +79,19 @@ mod tests{
     #[test]
     fn parse_minimum_config(){
         let yaml = r#"global:
-text_generation_webui:
-  model: test_model
+backend:
+  text_generation_webui:
+    model: test_model
+frontends:
 "#;
         let config: Config = serde_yaml::from_str(yaml).unwrap();
         assert_eq!( config, Config{
             global: GlobalConfig::default(),
-            text_generation_webui: TextGenerationWebuiConfig{
+            backend: BackendConfig::TextGenerationWebui(TextGenerationWebuiConfig{
                 model: "test_model".to_string(),
             ..Default::default()
-            },
-            matrix: None,
+            }),
+            frontends: Vec::new(),
         });
     }
 }
