@@ -8,6 +8,8 @@ pub struct Args{
     pub check: bool,
     #[arg(short='f', long, default_value_t)]
     pub config_file: String,
+    #[arg(short, long)]
+    pub auth: bool,
 }
 
 impl Default for Args {
@@ -15,6 +17,7 @@ impl Default for Args {
         Self {
             config_file: "/etc/tgwbot/tgwbot.yaml".to_string(),
             check: false,
+            auth: false,
         }
     }
 }

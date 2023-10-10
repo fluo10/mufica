@@ -1,33 +1,27 @@
 use serde::{Serialize, Deserialize};
 
+use crate::{FrontendConfig, MatrixConfig, BackendConfig, TextGenerationWebuiConfig};
+
+
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct Config {
-    global: GlobalConfig,
+    pub global: GlobalConfig,
     #[serde(with = "serde_yaml::with::singleton_map_recursive")]
-    frontends: Vec<FrontendConfig>,
+    pub frontends: Vec<FrontendConfig>,
     #[serde(with = "serde_yaml::with::singleton_map")]
-    backend: BackendConfig
+    pub backend: BackendConfig
 }
 
-#[derive(Debug, PartialEq, Serialize, Deserialize)]
-#[serde(rename_all = "snake_case")]
-pub enum FrontendConfig{
-    Matrix(MatrixConfig),
-}
 
-#[derive(Debug, PartialEq, Serialize, Deserialize)]
-#[serde(rename_all = "snake_case")]
-pub enum BackendConfig{
-    TextGenerationWebui(TextGenerationWebuiConfig),
-}
 
 
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 #[serde(default)]
 pub struct GlobalConfig {
-    config_dir: String,
-    data_dir: String,
+    pub config_dir: String,
+    pub data_dir: String,
+    pub interval: u64,
 }
 
 impl Default for GlobalConfig {
@@ -35,42 +29,12 @@ impl Default for GlobalConfig {
         Self{
             config_dir: "/etc/tgwbot".to_string(),
             data_dir: "/var/lib/tgwbot".to_string(),
+            interval: 10,
         }
     }
 }
 
 
-#[derive(Debug, PartialEq, Serialize, Deserialize)]
-#[serde(default)]
-pub struct TextGenerationWebuiConfig {
-    host: String,
-    character: Option<String>,
-    model: String,
-    update_history: bool,
-    character_dir: String,
-    history_dir: String,
-}
-
-impl Default for TextGenerationWebuiConfig {
-    fn default() -> Self {
-        Self{
-            host: "http://localhost:5000".to_string(),
-            character: None,
-            model: "".to_string(),
-            update_history: false,
-            character_dir: "/etc/tgwbot/characters".to_string(),
-            history_dir: "/var/lib/tgwbot/logs".to_string(),
-        }
-    }
-}
-
-#[derive(Debug, PartialEq, Serialize, Deserialize)]
-pub struct MatrixConfig {
-    host: String,
-    user: Option<String>,
-    password: Option<String>,
-    token: Option<String>,
-}
 
 #[cfg(test)]
 mod tests{
