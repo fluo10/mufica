@@ -58,6 +58,9 @@ pub trait ServiceExt {
 }
 
 pub trait FrontendServiceExt {
+    fn sync(&self) -> Result<()> {
+        todo!();
+    }
     fn post(&self, reply: String) -> Result<()> {
         todo!();
     }
