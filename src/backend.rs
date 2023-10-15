@@ -2,7 +2,7 @@ mod text_generation_webui;
 
 pub use text_generation_webui::{TextGenerationWebuiConfig, TextGenerationWebuiService};
 
-use crate::{Result, ServiceExt};
+use crate::{Result};
 
 use serde::{Serialize, Deserialize};
 
@@ -16,4 +16,3 @@ pub enum BackendService{
     TextGenerationWebui(TextGenerationWebuiService),
 }
 
-impl ServiceExt for BackendService{}

@@ -1,57 +1,37 @@
+use tokio::sync::Mutex;
+use std::sync::Arc;
+use crate::{MatrixHistory, Result};
+
 use chrono::{DateTime, Local};
-use std::convert::From;
+use std::convert::{From, Into};
+use std::ops::Deref;
 
-pub struct Message{
-    pub text: String,
+pub enum MessageSender {
+    User(Option<String>),
+    Agent,
+    // System,
 }
 
-impl From<TimestampedMessage> for Message {
-    fn from(m: TimestampedMessage) -> Message {
-        Message{
-            text: m.text
-        }
-    }
-}
-
-pub struct PairedMessages{
-   pub user: Message,
-    pub agent: Message,
-}
-impl From<PairedTimestampedMessages> for PairedMessages {
-    fn from(m: PairedTimestampedMessages) -> PairedMessages {
-        PairedMessages{
-            user: m.user.into(),
-            agent: m.agent.into(),
-        }
-    }
+pub struct Message {
+    text: String,
+    sender: MessageSender,
 }
 
 pub struct History {
-    content: Vec<PairedMessages>,
+    start_date: DateTime<Local>,
+    end_data: DateTime<Local>,
+    content: Vec<Message>,
 }
 
-impl From<TimestampedHistory> for History {
-    fn from(h: TimestampedHistory) -> History {
-        History{
-            content:  h.content.into_iter().map(|x| PairedMessages::from(x)).collect()
-        }
-    }
+pub struct Histories {
+    content: Vec<History>,
 }
 
-
-        
-pub struct TimestampedMessage{
-    pub timestamp: DateTime<Local>,
-    pub text: String,
+pub enum LocalHistory {
+    TextGenerationWebui(Arc<Mutex<text_generation_webui_api::History>>),
+    Matrix(Arc<Mutex<MatrixHistory>>),
 }
 
-pub struct PairedTimestampedMessages{
-    pub user: TimestampedMessage,
-    pub agent: TimestampedMessage,
+pub struct LocalHistories {
+    content: Vec<LocalHistory>,
 }
-    
-
-pub struct TimestampedHistory {
-    content: Vec<PairedTimestampedMessages>,
-}
-

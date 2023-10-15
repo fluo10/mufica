@@ -1,4 +1,4 @@
-use crate::{Result, ServiceExt, History, FrontendServiceExt,};
+use crate::{Result};
 
 use std::{
     io::{self, Write},
@@ -17,6 +17,8 @@ use matrix_sdk::{
 use rand::{distributions::Alphanumeric, thread_rng, Rng};
 use serde::{Deserialize, Serialize};
 use tokio::fs;
+use tokio::sync::Mutex;
+use std::sync::Arc;
 
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
@@ -28,21 +30,26 @@ pub struct MatrixConfig {
     pub data_dir: String,
 }
 
+#[derive(Clone, Debug)]
 pub struct MatrixService{
     pub host: String,
     pub session_file: PathBuf,
     pub client: Client,
     pub sync_token: Option<String>,
+    pub history: Arc<Mutex<MatrixHistory>>,
 }
 
-#[derive(Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq)]
+pub struct MatrixHistory{}
+
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 struct ClientSession {
     homeserver: String,
     db_path: PathBuf,
     passphrase: String,
 }
 
-#[derive(Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 struct FullSession {
     client_session: ClientSession,
     user_session: MatrixSession,
@@ -66,6 +73,7 @@ impl MatrixService{
             session_file: session_file,
             client: client,
             sync_token: sync_token,
+            history: Arc::new(Mutex::new(MatrixHistory{})),
         })
     }
 
@@ -234,35 +242,5 @@ impl MatrixService{
         };
 
         println!("[{room_name}] {}: {}", event.sender, text_content.body)
-    }
-
-
-
-}
-impl ServiceExt for MatrixService {
-    fn has_history(&self) -> bool {
-        true
-    }
-    fn get_history(&self) -> Option<History> {
-        todo!();
-    }
-    fn needs_auth(&self) -> bool{
-        todo!();
-    }
-    fn try_auth(&self) -> Result<String>{
-        todo!();
-    }
-    fn test_request(&self) -> Result<()>{
-        todo!();
-    }
-}
-
-impl FrontendServiceExt for MatrixService {
-    fn sync(&self) -> Result<()> {
-
-        todo!();
-    }
-    fn post(&self, reply: String) -> Result<()> {
-        todo!();
     }
 }

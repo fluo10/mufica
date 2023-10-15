@@ -23,6 +23,8 @@ pub enum Error {
     #[cfg(feature="cli")]
     #[error("Command parse error")]
     Cli(clap::Error),
+    #[error("Text generation webui api error")]
+    TextGenerationWebuiApi(text_generation_webui_api::Error),
 }
 
 impl From<tokio::task::JoinError> for Error {
@@ -70,6 +72,12 @@ impl From<url::ParseError> for Error {
 impl From<clap::Error> for Error {
     fn from(e: clap::Error) -> Self {
         Self::Cli(e)
+    }
+}
+
+impl From<text_generation_webui_api::Error> for Error {
+    fn from(e: text_generation_webui_api::Error) -> Self {
+        Self::TextGenerationWebuiApi(e)
     }
 }
 
