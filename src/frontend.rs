@@ -1,6 +1,6 @@
 mod matrix;
 
-pub use matrix::{MatrixConfig, MatrixService, MatrixHistory};
+pub use matrix::{MatrixConfig, MatrixWorker, MatrixHistory};
 use crate::History;
 
 use serde::{Serialize, Deserialize};
@@ -11,7 +11,4 @@ pub enum FrontendConfig{
     Matrix(MatrixConfig),
 }
 
-pub enum FrontendService{
-    Matrix(MatrixService),
-}
 

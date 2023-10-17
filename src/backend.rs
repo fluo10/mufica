@@ -1,6 +1,6 @@
 mod text_generation_webui;
 
-pub use text_generation_webui::{TextGenerationWebuiConfig, TextGenerationWebuiService};
+pub use text_generation_webui::{TextGenerationWebuiConfig, TextGenerationWebui};
 
 use crate::{Result};
 
@@ -12,7 +12,8 @@ pub enum BackendConfig{
     TextGenerationWebui(TextGenerationWebuiConfig),
 }
 
-pub enum BackendService{
-    TextGenerationWebui(TextGenerationWebuiService),
+#[derive(Debug,)]
+pub enum Backend{
+    TextGenerationWebui(TextGenerationWebui),
 }
 

@@ -38,7 +38,8 @@ impl TextGenerationWebuiConfig {
     }
 }
 
-pub struct TextGenerationWebuiService {
+#[derive(Debug)]
+pub struct TextGenerationWebui {
     host: String,
     model: String,
     history: Arc<Mutex<History>>,
@@ -47,7 +48,7 @@ pub struct TextGenerationWebuiService {
 
 }
 
-impl TextGenerationWebuiService {
+impl TextGenerationWebui {
     async fn load_model(&mut self) -> Result<()> {
         // Request current model
         let info = ModelApiRequest::info().send(&self.host).await?;
@@ -63,7 +64,7 @@ impl TextGenerationWebuiService {
         }
         Ok(())
     }
-    async fn new(c: TextGenerationWebuiConfig) -> Result<TextGenerationWebuiService>{
+    async fn new(c: TextGenerationWebuiConfig) -> Result<TextGenerationWebui>{
         let history = c.get_history()?;
         let character:Option<Character> = Some(c.get_character()?);
         let mut service = Self {

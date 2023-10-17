@@ -4,16 +4,16 @@ mod errors;
 mod frontend;
 mod backend;
 mod history;
-mod service;
+mod worker;
 
 
 pub use args::Args;
 pub use config::Config;
 pub use errors::{Result, Error};
-pub use frontend::{FrontendConfig, FrontendService, MatrixConfig, MatrixService, MatrixHistory};
-pub use backend::{BackendConfig, BackendService, TextGenerationWebuiConfig, TextGenerationWebuiService};
+pub use frontend::{FrontendConfig, MatrixConfig, MatrixWorker, MatrixHistory};
+pub use backend::{BackendConfig, Backend, TextGenerationWebuiConfig, TextGenerationWebui};
 pub use history::{History, Histories, LocalHistory, LocalHistories};
-pub use service::Service;
+pub use worker::Worker;
 
 
 use std::fs;
@@ -35,7 +35,7 @@ async fn main() -> Result<()> {
         return Ok(());
     }
 
-    let services: Vec<Service> = Vec::new();
+    let services: Vec<Worker> = Vec::new();
 
     // Try Initialize for each frontends and bachend
     todo!();

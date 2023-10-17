@@ -1,4 +1,4 @@
-use crate::{Result};
+use crate::{Result, Backend, LocalHistories};
 
 use std::{
     io::{self, Write},
@@ -31,12 +31,13 @@ pub struct MatrixConfig {
 }
 
 #[derive(Clone, Debug)]
-pub struct MatrixService{
+pub struct MatrixWorker{
     pub host: String,
     pub session_file: PathBuf,
     pub client: Client,
     pub sync_token: Option<String>,
     pub history: Arc<Mutex<MatrixHistory>>,
+    pub backend: Arc<Mutex<Backend>>,
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -57,8 +58,8 @@ struct FullSession {
     sync_token: Option<String>,
 }
 
-impl MatrixService{
-    async fn new(config: MatrixConfig) -> Result<Self> {
+impl MatrixWorker{
+    pub async fn new(backend: &Arc<Mutex<Backend>>, config: MatrixConfig) -> Result<Self> {
         let data_dir = PathBuf::from(&config.data_dir);
         let session_file = data_dir.join("session");
 
@@ -74,6 +75,7 @@ impl MatrixService{
             client: client,
             sync_token: sync_token,
             history: Arc::new(Mutex::new(MatrixHistory{})),
+            backend: backend.clone(),
         })
     }
 
@@ -181,7 +183,10 @@ impl MatrixService{
         }
     }
 
-    async fn sync(client: Client,initial_sync_token: Option<String>, session_file: &Path,) -> Result<()> {
+    pub async fn sync(self) -> Result<()> {
+        todo!()
+    }
+    async fn sync_matrix(client: Client,initial_sync_token: Option<String>, session_file: &Path,) -> Result<()> {
         println!("Launching a first sync to ignore past messages…");
         let filter = FilterDefinition::with_lazy_loading();
 
