@@ -32,6 +32,32 @@ pub enum LocalHistory {
     Matrix(Arc<Mutex<MatrixHistory>>),
 }
 
+impl LocalHistory{
+    async fn to_histories(&self) -> Histories {
+        match *self {
+            LocalHistory::TextGenerationWebui(ref x) => {
+                todo!()
+            },
+            LocalHistory::Matrix(ref x) => {
+                todo!()
+            },
+        }
+    }
+}
+
 pub struct LocalHistories {
     content: Vec<LocalHistory>,
+}
+impl LocalHistories {
+    pub fn iter(&self) -> impl Iterator<Item=&LocalHistory> {
+        self.content.iter()
+    }
+    pub async fn to_histories(&self) -> Histories {
+        let mut v = Vec::new();
+        for history in self.iter() {
+            v.append(&mut history.to_histories().await.content);
+        }
+        Histories{content: v}
+    }
+        
 }

@@ -1,4 +1,5 @@
-use crate::{Result, Backend, LocalHistories};
+use crate::{Result, Backend, LocalHistories, History};
+
 
 use std::{
     io::{self, Write},
@@ -11,15 +12,25 @@ use matrix_sdk::{
     ruma::{
         api::client::filter::FilterDefinition,
         events::room::message::{MessageType, OriginalSyncRoomMessageEvent},
+        OwnedRoomId,
+        UInt,
     },
     Client,LoopCtrl,Room, RoomState,
+    room::{Messages, MessagesOptions},
+    deserialized_responses::TimelineEvent,
 };
 use rand::{distributions::Alphanumeric, thread_rng, Rng};
 use serde::{Deserialize, Serialize};
 use tokio::fs;
 use tokio::sync::Mutex;
 use std::sync::Arc;
+use std::collections::HashMap;
+use std::ops::DerefMut;
 
+
+fn timeline_items_to_history(timeline_items: Vec<TimelineEvent>) -> History {
+    todo!()
+}
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct MatrixConfig {
@@ -40,8 +51,15 @@ pub struct MatrixWorker{
     pub backend: Arc<Mutex<Backend>>,
 }
 
-#[derive(Clone, Debug, PartialEq)]
-pub struct MatrixHistory{}
+#[derive(Clone, Debug)]
+pub struct MatrixHistory{
+    content: HashMap<OwnedRoomId, Vec<TimelineEvent>>
+}
+
+
+impl MatrixHistory {
+}
+
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 struct ClientSession {
@@ -69,14 +87,15 @@ impl MatrixWorker{
             (Self::login(&data_dir, &session_file).await?, None)
         };
 
-        Ok(Self {
+        let mut worker =  Self {
             host: config.host.clone(),
             session_file: session_file,
             client: client,
             sync_token: sync_token,
-            history: Arc::new(Mutex::new(MatrixHistory{})),
+            history: Arc::new(Mutex::new(MatrixHistory{content: HashMap::new()})),
             backend: backend.clone(),
-        })
+        };
+        Ok(worker)
     }
 
     /// Restore a previous session.
@@ -146,6 +165,7 @@ impl MatrixWorker{
         Ok(client)
     }
 
+
     async fn build_client(data_dir: &Path) -> Result<(Client, ClientSession)> {
         let mut rng = thread_rng();
         let db_subfolder: String =
@@ -186,6 +206,10 @@ impl MatrixWorker{
     pub async fn sync(self) -> Result<()> {
         todo!()
     }
+    pub async fn sync_once(self) -> Result<()> {
+        todo!()
+    }
+
     async fn sync_matrix(client: Client,initial_sync_token: Option<String>, session_file: &Path,) -> Result<()> {
         println!("Launching a first sync to ignore past messages…");
         let filter = FilterDefinition::with_lazy_loading();
@@ -247,5 +271,26 @@ impl MatrixWorker{
         };
 
         println!("[{room_name}] {}: {}", event.sender, text_content.body)
+    }
+    pub async fn sync_history_once(&mut self) -> Result<()> {
+        let rooms = self.client.joined_rooms();
+        let mut history = self.history.lock().await;
+        for room in rooms {
+            let room_id = room.room_id().to_owned();
+            let mut options = MessagesOptions::forward();
+            let mut events: Vec<TimelineEvent> = Vec::new();
+                loop {
+                    let mut messages = room.messages(options).await?;
+                    if let Some(x) = messages.end {
+                        options = MessagesOptions::forward();
+                        options.from = Some(x);
+                    } else {
+                        break;
+                    }
+                    events.append(&mut messages.chunk);
+                }
+            history.deref_mut().content.insert(room_id, events);
+        }
+        Ok(())
     }
 }
