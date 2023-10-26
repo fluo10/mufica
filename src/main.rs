@@ -8,10 +8,10 @@ mod worker;
 
 
 pub use args::Args;
-pub use config::Config;
+pub use config::{Config, FrontendConfig, BackendConfig, MatrixConfig, TextGenerationWebuiConfig, };
 pub use errors::{Result, Error};
-pub use frontend::{FrontendConfig, MatrixConfig, MatrixWorker, MatrixHistory};
-pub use backend::{BackendConfig, Backend, TextGenerationWebuiConfig, TextGenerationWebui};
+pub use frontend::{MatrixWorker, MatrixHistory};
+pub use backend::{Backend, TextGenerationWebui};
 pub use history::{History, Histories, LocalHistory, LocalHistories};
 pub use worker::Worker;
 

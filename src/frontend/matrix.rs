@@ -1,4 +1,4 @@
-use crate::{Result, Backend, LocalHistories, History};
+use crate::{Result, Backend, LocalHistories, History, MatrixConfig};
 
 
 use std::{
@@ -30,15 +30,6 @@ use std::ops::DerefMut;
 
 fn timeline_items_to_history(timeline_items: Vec<TimelineEvent>) -> History {
     todo!()
-}
-
-#[derive(Debug, PartialEq, Serialize, Deserialize)]
-pub struct MatrixConfig {
-    pub host: String,
-    pub user: Option<String>,
-    pub password: Option<String>,
-    pub token: Option<String>,
-    pub data_dir: String,
 }
 
 #[derive(Clone, Debug)]

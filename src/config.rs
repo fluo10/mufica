@@ -1,7 +1,10 @@
+mod matrix;
+mod text_generation_webui;
+
+pub use matrix::MatrixConfig;
+pub use text_generation_webui::TextGenerationWebuiConfig;
+
 use serde::{Serialize, Deserialize};
-
-use crate::{FrontendConfig, MatrixConfig, BackendConfig, TextGenerationWebuiConfig};
-
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct Config {
@@ -35,6 +38,18 @@ impl Default for GlobalConfig {
 }
 
 
+
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum FrontendConfig{
+    Matrix(MatrixConfig),
+}
+
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum BackendConfig{
+    TextGenerationWebui(TextGenerationWebuiConfig),
+}
 
 #[cfg(test)]
 mod tests{
