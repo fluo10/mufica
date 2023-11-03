@@ -3,20 +3,23 @@ use text_generation_webui_api::{ChatApiRequest, ChatApiResponse, ModelApiRequest
 use tokio::sync::Mutex;
 use std::sync::Arc;
 
-use crate::{Result, TextGenerationWebuiConfig};
+use crate::{Result, TextGenerationWebuiConfig, PlainHistories};
 
+fn plain_histories_to_text_generation_webui_history(h: PlainHistories) -> History {
+    todo!()
+}
 
 #[derive(Debug)]
-pub struct TextGenerationWebui {
+pub struct TextGenerationWebuiBackend{
     host: String,
     model: String,
     history: Arc<Mutex<History>>,
     character_name: Option<String>,
     character: Option<Character>,
-
 }
 
-impl TextGenerationWebui {
+
+impl TextGenerationWebuiBackend {
     async fn load_model(&mut self) -> Result<()> {
         // Request current model
         let info = ModelApiRequest::info().send(&self.host).await?;
@@ -32,7 +35,7 @@ impl TextGenerationWebui {
         }
         Ok(())
     }
-    async fn new(c: TextGenerationWebuiConfig) -> Result<TextGenerationWebui>{
+    async fn new(c: TextGenerationWebuiConfig) -> Result<TextGenerationWebuiBackend>{
         let history = c.get_history()?;
         let character:Option<Character> = Some(c.get_character()?);
         let mut service = Self {
@@ -45,15 +48,13 @@ impl TextGenerationWebui {
         service.load_model().await?;
         Ok(service)
     }
-    async fn generate(&self, input: String, history: History) -> Result<String> {
-        todo!();
+    async fn generate(&self, input: String, histories: PlainHistories) -> Result<String> {
+        let history = plain_histories_to_text_generation_webui_history(histories);
         let response = match (self.character_name.as_ref(), self.character.as_ref()) {
-            (Some(_), Some(x)) => ChatApiRequest::default().character(x).history(&history.into()).user_input(&input).send(&self.host).await?,
-            (Some(x), None) => ChatApiRequest::default().character_name(x).history(&history.into()).user_input(&input).send(&self.host).await?,
-            (None, _) => ChatApiRequest::default().history(&history.into()).user_input(&input).send(&self.host).await?,
+            (Some(_), Some(x)) => ChatApiRequest::default().character(x).history(&history).user_input(&input).send(&self.host).await?,
+            (Some(x), None) => ChatApiRequest::default().character_name(x).history(&history).user_input(&input).send(&self.host).await?,
+            (None, _) => ChatApiRequest::default().history(&history).user_input(&input).send(&self.host).await?,
         };
         todo!();
     }
 }
-
-

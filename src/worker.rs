@@ -1,6 +1,11 @@
+mod matrix;
+
+pub use matrix::MatrixWorker;
+
 use std::sync::Arc;
 use tokio::sync::Mutex;
-use crate::{FrontendConfig, MatrixWorker, Backend, LocalHistories, Result};
+use crate::{FrontendConfig, Backend, MutexHistories, Result};
+
 
 impl Worker {
     pub async fn new(backend: &Arc<Mutex<Backend>>, config: FrontendConfig) -> Result<Self> {

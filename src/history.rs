@@ -1,6 +1,12 @@
+mod matrix;
+mod text_generation_webui;
+
+pub use matrix::MatrixHistory;
+pub use text_generation_webui::TextGenerationWebuiHistory;
+
 use tokio::sync::Mutex;
 use std::sync::Arc;
-use crate::{MatrixHistory, Result};
+use crate::{Result};
 
 use chrono::{DateTime, Local};
 use std::convert::{From, Into};
@@ -17,47 +23,46 @@ pub struct Message {
     sender: MessageSender,
 }
 
-pub struct History {
-    start_date: DateTime<Local>,
-    end_data: DateTime<Local>,
-    content: Vec<Message>,
+pub struct PlainHistory {
+    sort_date: DateTime<Local>,
+    inner: Vec<Message>,
 }
 
-pub struct Histories {
-    content: Vec<History>,
+pub struct PlainHistories {
+    inner: Vec<PlainHistory>,
 }
 
-pub enum LocalHistory {
-    TextGenerationWebui(Arc<Mutex<text_generation_webui_api::History>>),
+pub enum MutexHistory {
+    TextGenerationWebui(Arc<Mutex<TextGenerationWebuiHistory>>),
     Matrix(Arc<Mutex<MatrixHistory>>),
 }
 
-impl LocalHistory{
-    async fn to_histories(&self) -> Histories {
+impl MutexHistory{
+    async fn to_histories(&self) -> PlainHistories {
         match *self {
-            LocalHistory::TextGenerationWebui(ref x) => {
+            Self::TextGenerationWebui(ref x) => {
                 todo!()
             },
-            LocalHistory::Matrix(ref x) => {
+            Self::Matrix(ref x) => {
                 todo!()
             },
         }
     }
 }
 
-pub struct LocalHistories {
-    content: Vec<LocalHistory>,
+pub struct MutexHistories {
+    inner: Vec<MutexHistory>,
 }
-impl LocalHistories {
-    pub fn iter(&self) -> impl Iterator<Item=&LocalHistory> {
-        self.content.iter()
+impl MutexHistories {
+    pub fn iter(&self) -> impl Iterator<Item=&MutexHistory> {
+        self.inner.iter()
     }
-    pub async fn to_histories(&self) -> Histories {
+    pub async fn to_histories(&self) -> PlainHistories {
         let mut v = Vec::new();
         for history in self.iter() {
-            v.append(&mut history.to_histories().await.content);
+            v.append(&mut history.to_histories().await.inner);
         }
-        Histories{content: v}
+        PlainHistories{inner: v}
     }
         
 }

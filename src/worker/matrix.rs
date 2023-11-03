@@ -1,4 +1,4 @@
-use crate::{Result, Backend, LocalHistories, History, MatrixConfig};
+use crate::{Result, Backend, MutexHistories, PlainHistory, MatrixConfig, MatrixHistory};
 
 
 use std::{
@@ -28,7 +28,7 @@ use std::collections::HashMap;
 use std::ops::DerefMut;
 
 
-fn timeline_items_to_history(timeline_items: Vec<TimelineEvent>) -> History {
+fn timeline_items_to_history(timeline_items: Vec<TimelineEvent>) -> PlainHistory {
     todo!()
 }
 
@@ -42,14 +42,6 @@ pub struct MatrixWorker{
     pub backend: Arc<Mutex<Backend>>,
 }
 
-#[derive(Clone, Debug)]
-pub struct MatrixHistory{
-    content: HashMap<OwnedRoomId, Vec<TimelineEvent>>
-}
-
-
-impl MatrixHistory {
-}
 
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -83,7 +75,7 @@ impl MatrixWorker{
             session_file: session_file,
             client: client,
             sync_token: sync_token,
-            history: Arc::new(Mutex::new(MatrixHistory{content: HashMap::new()})),
+            history: Arc::new(Mutex::new(MatrixHistory{inner: HashMap::new()})),
             backend: backend.clone(),
         };
         Ok(worker)
@@ -280,7 +272,7 @@ impl MatrixWorker{
                     }
                     events.append(&mut messages.chunk);
                 }
-            history.deref_mut().content.insert(room_id, events);
+            history.deref_mut().inner.insert(room_id, events);
         }
         Ok(())
     }

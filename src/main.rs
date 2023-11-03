@@ -1,19 +1,17 @@
-mod args;
-mod config;
-mod errors;
-mod frontend;
-mod backend;
-mod history;
-mod worker;
+pub mod args;
+pub mod config;
+pub mod errors;
+pub mod backend;
+pub mod history;
+pub mod worker;
 
 
 pub use args::Args;
 pub use config::{Config, FrontendConfig, BackendConfig, MatrixConfig, TextGenerationWebuiConfig, };
 pub use errors::{Result, Error};
-pub use frontend::{MatrixWorker, MatrixHistory};
-pub use backend::{Backend, TextGenerationWebui};
-pub use history::{History, Histories, LocalHistory, LocalHistories};
-pub use worker::Worker;
+pub use backend::{Backend, TextGenerationWebuiBackend};
+pub use history::{PlainHistory, PlainHistories, MutexHistory, MutexHistories, MatrixHistory, TextGenerationWebuiHistory};
+pub use worker::{Worker, MatrixWorker};
 
 
 use std::fs;
