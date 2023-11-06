@@ -18,6 +18,11 @@ impl Worker {
             Self::Matrix(x) => x.sync().await,
         }
     }
+    pub async fn sync_once(self) -> Result<()> {
+        match self {
+            Self::Matrix(x) => x.sync_once().await,
+        }
+    }
 }
 
 pub enum Worker{

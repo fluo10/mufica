@@ -33,17 +33,29 @@ async fn main() -> Result<()> {
         return Ok(());
     }
 
-    let services: Vec<Worker> = Vec::new();
+    let workers: Vec<Worker> = Vec::new();
 
     // Try Initialize for each frontends and bachend
     todo!();
 
-    for service in services {
+    if args.show_history {
+        for worker in workers.into_iter() {
+            thread::spawn( move || {
+                worker.sync_once();
+            });
+        }
+
+        // Get all histories
+        todo!();
+        return Ok(());
+    }
+
+    for worker in workers.into_iter() {
         thread::spawn( move || {
-            todo!();
+            worker.sync();
         });
     }
     Ok(())
-    
+
 
 }
