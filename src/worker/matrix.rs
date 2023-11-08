@@ -153,7 +153,7 @@ async fn build_client(data_dir: &Path) -> Result<(Client, ClientSession)> {
             }
     }
 }
-async fn sync(client: Client,initial_sync_token: Option<String>, session_file: &Path,) -> Result<()> {
+async fn sync(client: Client,initial_sync_token: Option<String>, session_file: &Path, history: Arc<Mutex<MatrixHistory>>,) -> Result<()> {
     println!("Launching a first sync to ignore past messages…");
     let filter = FilterDefinition::with_lazy_loading();
 
@@ -275,7 +275,7 @@ impl MatrixWorker{
 
 
     pub async fn sync(self) -> Result<()> {
-        todo!()
+        sync(self.client, self.sync_token, self.session_file.as_path(), self.history).await
     }
     pub async fn sync_once(self) -> Result<()> {
         sync_once(self.client, self.sync_token, self.session_file.as_path(), self.history).await

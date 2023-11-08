@@ -40,3 +40,13 @@ impl MatrixHistory {
         Ok(())
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn matrix_history_to_plain() {
+        todo!()
+    }
+}
