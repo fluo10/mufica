@@ -11,6 +11,8 @@ use crate::{Result};
 use chrono::{DateTime, Local};
 use std::convert::{From, Into};
 use std::ops::Deref;
+use std::iter::{Iterator, IntoIterator};
+use std::slice::{Iter,IterMut};
 
 #[derive(Clone, Debug, PartialEq,)]
 pub enum MessageSender {
@@ -31,12 +33,6 @@ pub struct PlainHistory {
     inner: Vec<Message>,
 }
 
-impl PlainHistory {
-    fn to_text_generation_webui_history(&self) -> TextGenerationWebuiHistory {
-        todo!()
-    }
-}
-
 impl From<PlainHistories> for PlainHistory {
     fn from(h: PlainHistories) -> Self {
         todo!()
@@ -49,7 +45,13 @@ impl From<TextGenerationWebuiHistory> for PlainHistory {
     }
 }
 
+impl Deref for PlainHistory {
+    type Target = [Message];
 
+    fn deref(&self) -> &[Message] {
+        self.inner.deref()
+    }
+}
 
 
 #[derive(Clone, Debug)]
@@ -57,15 +59,17 @@ pub struct PlainHistories {
     inner: Vec<PlainHistory>,
 }
 
-impl PlainHistories {
-    fn to_text_generation_webui_history(&self) -> TextGenerationWebuiHistory {
-        PlainHistory::from(self.clone()).to_text_generation_webui_history()
-    }
-}
-
 impl From<MatrixHistory> for PlainHistories {
     fn from(h: MatrixHistory) -> Self {
         todo!()
+    }
+}
+
+impl Deref for PlainHistories {
+    type Target = [PlainHistory];
+
+    fn deref(&self) -> &[PlainHistory] {
+        self.inner.deref()
     }
 }
 
@@ -89,7 +93,7 @@ impl MutexHistory{
     }
 
     async fn to_text_generation_webui_history(&self) -> TextGenerationWebuiHistory {
-        self.to_plain_histories().await.to_text_generation_webui_history()
+        self.to_plain_histories().await.into()
     }
 
 }
