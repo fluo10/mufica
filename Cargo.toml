@@ -6,12 +6,14 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [features]
-default = ["text-generation-webui", "matrix"]
+default = ["text-generation-webui", "openai", "matrix"]
 matrix = ["dep:matrix-sdk"]
+openai = ["dep:async-openai"]
 text-generation-webui = ["dep:text-generation-webui-api"]
 
 
 [dependencies]
+async-openai = { version = "0.16.2", optional = true }
 chrono = "0.4.31"
 clap = { version = "4.4.6", features = ["derive"] }
 matrix-sdk = { git = "https://github.com/matrix-org/matrix-rust-sdk", optional = true }
