@@ -1,12 +1,16 @@
+#[cfg(feature="matrix")]
 mod matrix;
+#[cfg(feature="text-generation-webui")]
 mod text_generation_webui;
 
+#[cfg(feature="matrix")]
 pub use matrix::MatrixHistory;
+#[cfg(feature="text-generation-webui")]
 pub use text_generation_webui::TextGenerationWebuiHistory;
 
 use tokio::sync::Mutex;
 use std::sync::Arc;
-use crate::{Result};
+use crate::errors::Result;
 
 use chrono::{DateTime, Local, TimeZone};
 use std::convert::{From, Into};
@@ -39,6 +43,7 @@ impl From<PlainHistories> for PlainHistory {
     }
 }
 
+#[cfg(feature="text-generation-webui")]
 impl From<TextGenerationWebuiHistory> for PlainHistory {
     fn from(h: TextGenerationWebuiHistory) -> Self {
         let mut messages: Vec<Message> = Vec::new();
@@ -79,6 +84,7 @@ pub struct PlainHistories {
     inner: Vec<PlainHistory>,
 }
 
+#[cfg(feature="matrix")]
 impl From<MatrixHistory> for PlainHistories {
     fn from(h: MatrixHistory) -> Self {
         todo!()
@@ -94,6 +100,7 @@ impl Deref for PlainHistories {
 }
 
 pub enum MutexHistory {
+    #[cfg(feature="text-generation-webui")]
     TextGenerationWebui(Arc<Mutex<TextGenerationWebuiHistory>>),
     Matrix(Arc<Mutex<MatrixHistory>>),
 }
@@ -112,6 +119,7 @@ impl MutexHistory{
         }
     }
 
+    #[cfg(feature="text-generation-webui")]
     async fn to_text_generation_webui_history(&self) -> TextGenerationWebuiHistory {
         self.to_plain_histories().await.into()
     }

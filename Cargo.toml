@@ -5,16 +5,22 @@ edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
+[features]
+default = ["text-generation-webui", "matrix"]
+matrix = ["dep:matrix-sdk"]
+text-generation-webui = ["dep:text-generation-webui-api"]
+
+
 [dependencies]
 chrono = "0.4.31"
 clap = { version = "4.4.6", features = ["derive"] }
-matrix-sdk = { git = "https://github.com/matrix-org/matrix-rust-sdk" }
+matrix-sdk = { git = "https://github.com/matrix-org/matrix-rust-sdk", optional = true }
 rand = "0.8.5"
 reqwest = { version = "0.11.22", features = ["json"] }
 serde = { version = "1.0.188", features = ["derive"] }
 serde_json = "1.0.107"
 serde_yaml = "0.9.25"
-text-generation-webui-api = { git = "https://github.com/fluo10/text-generation-webui-api-rs"}
+text-generation-webui-api = { git = "https://github.com/fluo10/text-generation-webui-api-rs", optional = true }
 thiserror = "1.0.49"
 tokio = { version = "1.33.0", features = ["full"] }
 url = "2.4.1"

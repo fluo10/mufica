@@ -3,8 +3,12 @@ use text_generation_webui_api::{ChatApiRequest, ChatApiResponse, ModelApiRequest
 use tokio::sync::Mutex;
 use std::sync::Arc;
 
-use crate::{Result, TextGenerationWebuiConfig, PlainHistories};
+use crate::{
+    errors::Result,
+    history::PlainHistories
+};
 
+use crate::config::TextGenerationWebuiConfig; 
 fn plain_histories_to_text_generation_webui_history(h: PlainHistories) -> History {
     todo!()
 }

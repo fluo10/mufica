@@ -6,12 +6,16 @@ pub mod history;
 pub mod worker;
 
 
-pub use args::Args;
-pub use config::{Config, FrontendConfig, BackendConfig, MatrixConfig, TextGenerationWebuiConfig, };
-pub use errors::{Result, Error};
-pub use backend::{Backend, TextGenerationWebuiBackend};
-pub use history::{PlainHistory, PlainHistories, MutexHistory, MutexHistories, MatrixHistory, TextGenerationWebuiHistory};
-pub use worker::{Worker, MatrixWorker};
+use args::Args;
+use config::{Config, FrontendConfig, BackendConfig, };
+#[cfg(feature="matrix")]
+use config::MatrixConfig;
+use errors::Result;
+use backend::Backend;
+use history::{PlainHistory, PlainHistories, MutexHistory, MutexHistories};
+#[cfg(feature="matrix")]
+use history::MatrixHistory;
+use worker::Worker;
 
 
 use std::fs;

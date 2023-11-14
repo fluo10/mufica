@@ -1,4 +1,4 @@
-use crate::Result;
+use crate::errors::Result;
 use serde::{Deserialize, Serialize};
 use text_generation_webui_api::{ChatApiRequest, ChatApiResponse, ModelApiRequest, ModelApiResponse, ModelApiResponseResult, Character, History};
 

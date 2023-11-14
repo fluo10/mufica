@@ -8,8 +8,10 @@ pub enum Error {
     Join(tokio::task::JoinError),
     #[error("IO error")]
     Io(io::Error),
+    #[cfg(feature="matrix")]
     #[error("Matrix Error")]
     Matrix(matrix_sdk::Error),
+    #[cfg(feature="matrix")]
     #[error("Matrix Client Build Error")]
     MatrixClientBuild(matrix_sdk::ClientBuildError),
     #[error("Json parse error")]
@@ -23,6 +25,7 @@ pub enum Error {
     #[cfg(feature="cli")]
     #[error("Command parse error")]
     Cli(clap::Error),
+    #[cfg(feature="text-generation-webui")]
     #[error("Text generation webui api error")]
     TextGenerationWebuiApi(text_generation_webui_api::Error),
 }
@@ -37,11 +40,13 @@ impl From<io::Error> for Error {
         Self::Io(e)
     }
 }
+#[cfg(feature="matrix")]
 impl From<matrix_sdk::Error> for Error {
     fn from(e: matrix_sdk::Error) -> Self {
         Self::Matrix(e)
     }
 }
+#[cfg(feature="matrix")]
 impl From<matrix_sdk::ClientBuildError> for Error {
     fn from(e: matrix_sdk::ClientBuildError) -> Self {
         Self::MatrixClientBuild(e)
@@ -75,6 +80,7 @@ impl From<clap::Error> for Error {
     }
 }
 
+#[cfg(feature="text-generation-webui")]
 impl From<text_generation_webui_api::Error> for Error {
     fn from(e: text_generation_webui_api::Error) -> Self {
         Self::TextGenerationWebuiApi(e)

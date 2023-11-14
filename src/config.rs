@@ -1,7 +1,12 @@
+#[cfg(feature="matrix")]
 mod matrix;
+#[cfg(feature="text-generation-webui")]
 mod text_generation_webui;
 
+#[cfg(feature="matrix")]
 pub use matrix::MatrixConfig;
+
+#[cfg(feature="text-generation-webui")]
 pub use text_generation_webui::TextGenerationWebuiConfig;
 
 use serde::{Serialize, Deserialize};
@@ -14,10 +19,6 @@ pub struct Config {
     #[serde(with = "serde_yaml::with::singleton_map")]
     pub backend: BackendConfig
 }
-
-
-
-
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 #[serde(default)]
@@ -42,12 +43,14 @@ impl Default for GlobalConfig {
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum FrontendConfig{
+    #[cfg(feature="matrix")]
     Matrix(MatrixConfig),
 }
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum BackendConfig{
+    #[cfg(feature="text-generation-webui")]
     TextGenerationWebui(TextGenerationWebuiConfig),
 }
 
@@ -56,6 +59,7 @@ mod tests{
     use super::*;
 
     #[test]
+    #[cfg(feature="text-generation-webui")]
     fn parse_minimum_config(){
         let yaml = r#"global:
 backend:
