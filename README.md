@@ -1,2 +1,2 @@
-# text-generation-webui-chatbot-rs
-Chatbot powerd by text-generation-webui
+# Mufica - Multi Frontend Chatbot
+An chatbot supporting multiple frontend powered by openai-api

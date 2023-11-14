@@ -1,5 +1,5 @@
 [package]
-name = "text-generation-webui-chatbot-rs"
+name = "mufica"
 version = "0.1.0"
 edition = "2021"
 
