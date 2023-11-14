@@ -74,10 +74,11 @@ impl From<PlainHistories> for TextGenerationWebuiHistory {
 mod tests {
     use super::*;
     use crate::history::{Message, MessageSender, PlainHistory};
+    use chrono::TimeZone;
 
     #[test]
     fn to_plain_history () {
-        let date = chrono::Local::now();
+        let date = chrono::Local.timestamp_opt(0,0).unwrap();
         let text_generation_webui_history_str = r#"{ "internal" : [["How are you?", "I'm fine. And you?"]], "visible": [["How are you?", "I'm fine. And you?"]]}"#;
         let text_generation_webui_history_inner: History = serde_json::from_str(&text_generation_webui_history_str).unwrap();
         let text_generation_webui_history = TextGenerationWebuiHistory::from(text_generation_webui_history_inner);

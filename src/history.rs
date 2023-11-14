@@ -8,7 +8,7 @@ use tokio::sync::Mutex;
 use std::sync::Arc;
 use crate::{Result};
 
-use chrono::{DateTime, Local};
+use chrono::{DateTime, Local, TimeZone};
 use std::convert::{From, Into};
 use std::ops::Deref;
 use std::iter::{Iterator, IntoIterator};
@@ -41,7 +41,27 @@ impl From<PlainHistories> for PlainHistory {
 
 impl From<TextGenerationWebuiHistory> for PlainHistory {
     fn from(h: TextGenerationWebuiHistory) -> Self {
-        todo!()
+        let mut messages: Vec<Message> = Vec::new();
+        for (x, y) in h.inner.iter() {
+            if !x.is_empty() {
+                messages.push(Message{
+                    sender: MessageSender::User(None),
+                    text: x.clone()
+                });
+            }
+            if !y.is_empty() {
+                messages.push(Message{
+                    sender: MessageSender::Agent,
+                    text: y.clone(),
+                });
+            }
+        }
+            
+        Self {
+            sort_date: Local.timestamp_opt(0,0).unwrap(),
+            inner: messages,
+        }
+
     }
 }
 
