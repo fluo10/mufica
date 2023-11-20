@@ -25,6 +25,7 @@ use std::thread;
 
 #[tokio::main]
 async fn main() -> Result<()> {
+    tracing_subscriber::fmt::init();
     let args: Args = Args::parse();
 
     let path = &args.config_file;
