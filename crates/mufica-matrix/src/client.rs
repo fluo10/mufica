@@ -1,4 +1,5 @@
-use crate::{Result, Backend, MutexHistories, PlainHistory, MatrixConfig, MatrixHistory};
+use crate::{Result, MatrixConfig, MatrixTimeline};
+use matrix_sdk_ui::timeline::TimelineItem;
 
 
 use std::{
@@ -26,14 +27,6 @@ use tokio::sync::Mutex;
 use std::sync::Arc;
 use std::collections::HashMap;
 use std::ops::DerefMut;
-
-
-fn timeline_items_to_history(timeline_items: Vec<TimelineEvent>) -> PlainHistory {
-    todo!()
-}
-
-
-
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 struct ClientSession {
@@ -153,7 +146,7 @@ async fn build_client(data_dir: &Path) -> Result<(Client, ClientSession)> {
             }
     }
 }
-async fn sync(client: Client,initial_sync_token: Option<String>, session_file: &Path, history: Arc<Mutex<MatrixHistory>>,) -> Result<()> {
+async fn sync(client: Client,initial_sync_token: Option<String>, session_file: &Path, history: Arc<Mutex<MatrixTimeline>>,) -> Result<()> {
     println!("Launching a first sync to ignore past messages…");
     let filter = FilterDefinition::with_lazy_loading();
 
@@ -190,7 +183,7 @@ async fn sync(client: Client,initial_sync_token: Option<String>, session_file: &
     Ok(())
 }
 
-async fn sync_once(client: Client,initial_sync_token: Option<String>, session_file: &Path, history: Arc<Mutex<MatrixHistory>>,) -> Result<()> {
+async fn sync_once(client: Client,initial_sync_token: Option<String>, session_file: &Path, history: Arc<Mutex<MatrixTimeline>>,) -> Result<()> {
     println!("Launching a first sync to ignore past messages…");
     let filter = FilterDefinition::with_lazy_loading();
 
@@ -241,17 +234,16 @@ async fn on_room_message(event: OriginalSyncRoomMessageEvent, room: Room) {
 }
 
 #[derive(Clone, Debug)]
-pub struct MatrixWorker{
+pub struct MatrixClient{
     pub host: String,
     pub session_file: PathBuf,
     pub client: Client,
     pub sync_token: Option<String>,
-    pub history: Arc<Mutex<MatrixHistory>>,
-    pub backend: Arc<Mutex<Backend>>,
+    pub history: Arc<Mutex<MatrixTimeline>>,
 }
 
-impl MatrixWorker{
-    pub async fn new(backend: &Arc<Mutex<Backend>>, config: MatrixConfig) -> Result<Self> {
+impl MatrixClient{
+    pub async fn new(config: MatrixConfig) -> Result<Self> {
         let data_dir = PathBuf::from(&config.data_dir);
         let session_file = data_dir.join("session");
 
@@ -266,19 +258,20 @@ impl MatrixWorker{
             session_file: session_file,
             client: client,
             sync_token: sync_token,
-            history: Arc::new(Mutex::new(MatrixHistory{inner: HashMap::new()})),
-            backend: backend.clone(),
+            history: Arc::new(Mutex::new(MatrixTimeline{inner: HashMap::new()})),
         };
         worker.reflesh_history().await?;
         Ok(worker)
     }
 
 
-    pub async fn sync(self) -> Result<()> {
-        sync(self.client, self.sync_token, self.session_file.as_path(), self.history).await
+    pub async fn sync<F>(self, f: F) -> Result<()> where
+    F: Fn(TimelineItem) -> Result<()> {
+        todo!()
     }
+
     pub async fn sync_once(self) -> Result<()> {
-        sync_once(self.client, self.sync_token, self.session_file.as_path(), self.history).await
+        todo!()
     }
 
     pub async fn reflesh_history(&mut self) -> Result<()> {

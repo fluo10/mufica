@@ -8,9 +8,10 @@ pub enum Error {
     Join(tokio::task::JoinError),
     #[error("IO error")]
     Io(io::Error),
-    #[cfg(feature="matrix")]
     #[error("Matrix Error")]
-    Matrix(mufica_matrix::Error),
+    Matrix(matrix_sdk::Error),
+    #[error("Matrix Client Build Error")]
+    MatrixClientBuild(matrix_sdk::ClientBuildError),
     #[error("Json parse error")]
     ParseJson(serde_json::Error),
     #[error("Parse yaml error")]
@@ -19,12 +20,6 @@ pub enum Error {
     Response(reqwest::Error),
     #[error("Parse Url error")]
     ParseUrl(url::ParseError),
-    #[cfg(feature="cli")]
-    #[error("Command parse error")]
-    Cli(clap::Error),
-    #[cfg(feature="text-generation-webui")]
-    #[error("Text generation webui api error")]
-    TextGenerationWebuiApi(text_generation_webui_api::Error),
 }
 
 impl From<tokio::task::JoinError> for Error {
@@ -37,10 +32,14 @@ impl From<io::Error> for Error {
         Self::Io(e)
     }
 }
-#[cfg(feature="matrix")]
-impl From<mufica_matrix::Error> for Error {
-    fn from(e: mufica_matrix::Error) -> Self {
+impl From<matrix_sdk::Error> for Error {
+    fn from(e: matrix_sdk::Error) -> Self {
         Self::Matrix(e)
+    }
+}
+impl From<matrix_sdk::ClientBuildError> for Error {
+    fn from(e: matrix_sdk::ClientBuildError) -> Self {
+        Self::MatrixClientBuild(e)
     }
 }
 impl From<serde_json::Error> for Error {
@@ -64,17 +63,3 @@ impl From<url::ParseError> for Error {
         Self::ParseUrl(e)
     }
 }
-#[cfg(feature="cli")]
-impl From<clap::Error> for Error {
-    fn from(e: clap::Error) -> Self {
-        Self::Cli(e)
-    }
-}
-
-#[cfg(feature="text-generation-webui")]
-impl From<text_generation_webui_api::Error> for Error {
-    fn from(e: text_generation_webui_api::Error) -> Self {
-        Self::TextGenerationWebuiApi(e)
-    }
-}
-

@@ -2,6 +2,7 @@
 members = ["crates/*"]
 
 [workspace.dependencies]
+clap = { version = "4.4.6", features = ["derive"] }
 serde = { version = "1.0.188", features = ["derive"] }
 serde_json = "1.0.107"
 serde_yaml = "0.9.25"
@@ -20,12 +21,13 @@ edition = "2021"
 
 [features]
 default = ["text-generation-webui", "openai", "matrix"]
-matrix = ["dep:matrix-sdk"]
+matrix = ["dep:mufica-matrix"]
 openai = ["dep:async-openai"]
 text-generation-webui = ["dep:text-generation-webui-api"]
 
 
 [dependencies]
+clap.workspace = true
 serde.workspace = true
 serde_json.workspace = true
 serde_yaml.workspace = true
@@ -34,11 +36,9 @@ tokio.workspace = true
 tracing.workspace = true
 tracing-subscriber.workspace = true
 url.worskpace = true
-
+mufica-matrix = {path = "./crates/mufica-matrix", optional = true}
 async-openai = { version = "0.16.2", optional = true }
 chrono = "0.4.31"
-clap = { version = "4.4.6", features = ["derive"] }
-matrix-sdk = { git = "https://github.com/matrix-org/matrix-rust-sdk", optional = true }
 rand = "0.8.5"
 reqwest = { version = "0.11.22", features = ["json"] }
 text-generation-webui-api = { git = "https://github.com/fluo10/text-generation-webui-api-rs", optional = true }

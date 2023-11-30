@@ -1,6 +1,12 @@
-pub fn add(left: usize, right: usize) -> usize {
-    left + right
-}
+pub mod client;
+pub mod config;
+pub mod errors;
+pub mod timeline;
+
+pub use client::MatrixClient;
+pub use config::MatrixConfig;
+pub use errors::{Result, Error};
+pub use timeline::MatrixTimeline;
 
 #[cfg(test)]
 mod tests {

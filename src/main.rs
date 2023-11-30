@@ -8,13 +8,9 @@ pub mod worker;
 
 use args::Args;
 use config::{Config, FrontendConfig, BackendConfig, };
-#[cfg(feature="matrix")]
-use config::MatrixConfig;
 use errors::Result;
 use backend::Backend;
 use history::{PlainHistory, PlainHistories, MutexHistory, MutexHistories};
-#[cfg(feature="matrix")]
-use history::MatrixHistory;
 use worker::Worker;
 
 

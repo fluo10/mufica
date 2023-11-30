@@ -1,10 +1,8 @@
-#[cfg(feature="matrix")]
-mod matrix;
 #[cfg(feature="text-generation-webui")]
 mod text_generation_webui;
 
 #[cfg(feature="matrix")]
-pub use matrix::MatrixHistory;
+pub use mufica_matrix::MatrixTimeline;
 #[cfg(feature="text-generation-webui")]
 pub use text_generation_webui::TextGenerationWebuiHistory;
 
@@ -85,8 +83,8 @@ pub struct PlainHistories {
 }
 
 #[cfg(feature="matrix")]
-impl From<MatrixHistory> for PlainHistories {
-    fn from(h: MatrixHistory) -> Self {
+impl From<MatrixTimeline> for PlainHistories {
+    fn from(h: MatrixTimeline) -> Self {
         todo!()
     }
 }
@@ -102,7 +100,7 @@ impl Deref for PlainHistories {
 pub enum MutexHistory {
     #[cfg(feature="text-generation-webui")]
     TextGenerationWebui(Arc<Mutex<TextGenerationWebuiHistory>>),
-    Matrix(Arc<Mutex<MatrixHistory>>),
+    Matrix(Arc<Mutex<MatrixTimeline>>),
 }
 
 impl MutexHistory{

@@ -13,12 +13,12 @@ use matrix_sdk::{
 };
 
 #[derive(Clone, Debug)]
-pub struct MatrixHistory{
+pub struct MatrixTimeline{
     pub inner: HashMap<OwnedRoomId, Vec<TimelineEvent>>
 }
 
 
-impl MatrixHistory {
+impl MatrixTimeline {
     pub async fn reflesh(&mut self, client: &Client) -> Result<()>{
         let rooms = client.joined_rooms();
         for room in rooms {

@@ -1,10 +1,8 @@
-#[cfg(feature="matrix")]
-mod matrix;
 #[cfg(feature="text-generation-webui")]
 mod text_generation_webui;
 
 #[cfg(feature="matrix")]
-pub use matrix::MatrixConfig;
+pub use mufica_matrix::MatrixConfig;
 
 #[cfg(feature="text-generation-webui")]
 pub use text_generation_webui::TextGenerationWebuiConfig;
