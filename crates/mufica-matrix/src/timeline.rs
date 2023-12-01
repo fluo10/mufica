@@ -1,4 +1,8 @@
 use std::collections::HashMap;
+use std::sync::Arc;
+use std::ops::{DerefMut, Deref};
+use imbl::Vector;
+use matrix_sdk_ui::timeline::TimelineItem;
 
 use crate::Result;
 
@@ -14,30 +18,42 @@ use matrix_sdk::{
 
 #[derive(Clone, Debug)]
 pub struct MatrixTimeline{
-    pub inner: HashMap<OwnedRoomId, Vec<TimelineEvent>>
+    pub inner: Vector<Arc<TimelineItem>>,
+}
+
+impl MatrixTimeline {
+    pub fn new () -> Self {
+        Self{
+            inner: Vector::new()
+        }
+    }
+    pub fn append(&mut self, v: Vector<Arc<TimelineItem>>) {
+        self.inner.append(v);
+    }
+    pub fn push_back(&mut self, t: Arc<TimelineItem>) {
+        self.inner.push_back(t);
+    }
+}
+
+impl Deref for MatrixTimeline {
+    type Target = Vector<Arc<TimelineItem>>;
+    fn deref(&self) -> &Self::Target {
+        &self.inner
+    }
+}
+impl DerefMut for MatrixTimeline {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.inner
+    }
 }
 
 
-impl MatrixTimeline {
-    pub async fn reflesh(&mut self, client: &Client) -> Result<()>{
-        let rooms = client.joined_rooms();
-        for room in rooms {
-            let room_id = room.room_id().to_owned();
-            let mut options = MessagesOptions::forward();
-            let mut events: Vec<TimelineEvent> = Vec::new();
-            loop {
-                let mut messages = room.messages(options).await?;
-                if let Some(x) = messages.end {
-                        options = MessagesOptions::forward();
-                        options.from = Some(x);
-                    } else {
-                        break;
-                    }
-                    events.append(&mut messages.chunk);
-                }
-            self.inner.insert(room_id, events);
+
+impl From<Vector<Arc<TimelineItem>>> for MatrixTimeline {
+    fn from(v: Vector<Arc<TimelineItem>>) -> Self {
+        Self{
+            inner: v
         }
-        Ok(())
     }
 }
 

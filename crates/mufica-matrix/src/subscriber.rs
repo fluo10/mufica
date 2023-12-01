@@ -1,10 +1,13 @@
 use crate::{Result, MatrixConfig, MatrixTimeline};
-use matrix_sdk_ui::timeline::TimelineItem;
+use matrix_sdk_ui::timeline::{Message, TimelineItem,RoomExt, Timeline, TimelineItemKind, TimelineItemContent};
+use eyeball_im::VectorDiff;
+use imbl::Vector;
 
 
 use std::{
     io::{self, Write},
     path::{Path, PathBuf},
+    borrow::Borrow,
 };
 
 use matrix_sdk::{
@@ -14,7 +17,7 @@ use matrix_sdk::{
         api::client::filter::FilterDefinition,
         events::room::message::{MessageType, OriginalSyncRoomMessageEvent},
         OwnedRoomId,
-        UInt,
+        UInt, EventId, UserId, OwnedUserId, OwnedEventId,
     },
     Client,LoopCtrl,Room, RoomState,
     room::{Messages, MessagesOptions},
@@ -27,6 +30,7 @@ use tokio::sync::Mutex;
 use std::sync::Arc;
 use std::collections::HashMap;
 use std::ops::DerefMut;
+use futures_util::StreamExt;
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 struct ClientSession {
@@ -67,7 +71,7 @@ async fn restore_session(session_file: &Path) -> Result<(Client, Option<String>)
 }
 
 /// Login with a new device.
-async fn login(data_dir: &Path, session_file: &Path) -> Result<Client> {
+async fn login(data_dir: &Path, session_file: &Path, username: &str, password: &str) -> Result<Client> {
     println!("No previous session found, logging in…");
 
     let (client, client_session) = build_client(data_dir).await?;
@@ -76,18 +80,8 @@ async fn login(data_dir: &Path, session_file: &Path) -> Result<Client> {
     loop {
         print!("\nUsername: ");
         io::stdout().flush().expect("Unable to write to stdout");
-        let mut username = String::new();
-        io::stdin().read_line(&mut username).expect("Unable to read user input");
-        username = username.trim().to_owned();
-
-        print!("Password: ");
-        io::stdout().flush().expect("Unable to write to stdout");
-        let mut password = String::new();
-        io::stdin().read_line(&mut password).expect("Unable to read user input");
-        password = password.trim().to_owned();
-
         match matrix_auth
-            .login_username(&username, &password)
+            .login_username(username, password)
             .initial_device_display_name("persist-session client")
             .await {
                 Ok(_) => {
@@ -233,48 +227,111 @@ async fn on_room_message(event: OriginalSyncRoomMessageEvent, room: Room) {
     println!("[{room_name}] {}: {}", event.sender, text_content.body)
 }
 
-#[derive(Clone, Debug)]
-pub struct MatrixClient{
-    pub host: String,
-    pub session_file: PathBuf,
-    pub client: Client,
-    pub sync_token: Option<String>,
-    pub history: Arc<Mutex<MatrixTimeline>>,
+fn get_new_text_message(user_id: &UserId, event: &VectorDiff<Arc<TimelineItem>>) -> Option<(OwnedEventId, String)>{
+    if let VectorDiff::PushBack{value: timeline_item} = event {
+        if let TimelineItemKind::Event(event_timeline_item) = timeline_item.kind() {
+            let sender: OwnedUserId = event_timeline_item.sender().to_owned();
+            let event_id: OwnedEventId = event_timeline_item.event_id()?.to_owned();
+            if sender == user_id { return None }
+            if let TimelineItemContent::Message(message) = event_timeline_item.content() {
+                if let MessageType::Text(text_message_content) = message.msgtype() {
+                    return  Some((event_id, text_message_content.body.clone()));
+                }
+            }
+        }
+    }
+    None
 }
 
-impl MatrixClient{
-    pub async fn new(config: MatrixConfig) -> Result<Self> {
+fn reply_text_message(room: &Room, message: &str, reply_to: &EventId) {
+    todo!()
+}
+
+
+#[derive(Clone, Debug)]
+pub struct MatrixClient<'a>{
+   pub config: &'a MatrixConfig, 
+    pub client: Client,
+    pub sync_token: Option<String>,
+}
+
+impl<'a> MatrixClient<'a>{
+    pub async fn new (config:&'a MatrixConfig) -> Result<Self> {
         let data_dir = PathBuf::from(&config.data_dir);
         let session_file = data_dir.join("session");
 
         let (client, sync_token) = if session_file.exists() {
             restore_session(&session_file).await?
         } else {
-            (login(&data_dir, &session_file).await?, None)
+            (login(&data_dir, &session_file, &config.username, &config.password).await?, None)
         };
+        let sync_settings = SyncSettings::default();
+
+        client.sync_once(sync_settings.clone()).await?;
 
         let mut worker =  Self {
-            host: config.host.clone(),
-            session_file: session_file,
+            config: config,
             client: client,
             sync_token: sync_token,
-            history: Arc::new(Mutex::new(MatrixTimeline{inner: HashMap::new()})),
         };
-        worker.reflesh_history().await?;
         Ok(worker)
     }
+    pub async fn timelines(&self) -> Result<Vec<Arc<Mutex<MatrixTimeline>>>>{
+        let mut result = Vec::new();
+        for room in self.client.rooms().iter() {
+            let timeline = room.timeline().await;
+            result.push( Arc::new(Mutex::new(timeline.items().await.into())));
+        }
+        Ok(result)
 
-
-    pub async fn sync<F>(self, f: F) -> Result<()> where
-    F: Fn(TimelineItem) -> Result<()> {
-        todo!()
     }
-
-    pub async fn sync_once(self) -> Result<()> {
-        todo!()
+    pub async fn subscribe(& self) -> Result<Vec<(Arc<Mutex<MatrixTimeline>>, MatrixSubscriber)>>{
+        let mut result = Vec::new();
+        for room in self.client.rooms().iter() {
+            let timeline = room.timeline().await;
+            let history = Arc::new(Mutex::new(MatrixTimeline::new()));
+            result.push((
+                    history.clone(),
+                    MatrixSubscriber {
+                        history:history.clone(), 
+                        timeline: timeline,
+                        room: room.clone(),
+                    }
+                    ));
+        }
+        Ok(result)
     }
+}
 
-    pub async fn reflesh_history(&mut self) -> Result<()> {
-        self.history.lock().await.reflesh(&self.client).await
+#[derive(Debug)]
+pub struct MatrixSubscriber{
+    pub room: Room,
+    pub history: Arc<Mutex<MatrixTimeline>>,
+    pub timeline: Timeline,
+}
+
+impl MatrixSubscriber{
+
+    pub async fn sync<F>(&mut self, f: F) -> Result<()> where
+    F: Fn(&str) -> Result<String> {
+        let (timeline_items, mut timeline_stream) = self.timeline.subscribe().await;
+        let mut history = self.history.lock().await;
+        history.deref_mut().append(timeline_items);
+
+        while let Some(x) = timeline_stream.next().await {
+            if let Some((event_id, text)) = get_new_text_message(self.user_id().borrow(), &x) {
+                let reply_text = f(&text).unwrap();
+                reply_text_message(&self.room, &reply_text, &event_id.borrow());
+                    x.apply(self.history.lock().await.deref_mut());
+            }
+        }
+            Ok(())
+
+    }
+    pub fn client(&self) -> Client {
+        self.room.client()
+    }
+    pub fn user_id(&self) -> OwnedUserId {
+        self.client().user_id().unwrap().to_owned()
     }
 }

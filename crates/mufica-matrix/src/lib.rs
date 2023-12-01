@@ -1,12 +1,12 @@
-pub mod client;
+pub mod subscriber;
 pub mod config;
 pub mod errors;
 pub mod timeline;
 
-pub use client::MatrixClient;
 pub use config::MatrixConfig;
 pub use errors::{Result, Error};
 pub use timeline::MatrixTimeline;
+pub use subscriber::{MatrixSubscriber, MatrixClient};
 
 #[cfg(test)]
 mod tests {

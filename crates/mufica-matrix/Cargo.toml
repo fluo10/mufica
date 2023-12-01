@@ -20,6 +20,9 @@ matrix-sdk = { git = "https://github.com/matrix-org/matrix-rust-sdk"}
 matrix-sdk-ui = { git = "https://github.com/matrix-org/matrix-rust-sdk"}
 rand = "0.8.5"
 reqwest = { version = "0.11.22", features = ["json"] }
+imbl = "2.0.3"
+eyeball-im = "0.4.2"
+futures-util = "0.3.29"
 
 [dev-dependencies]
 clap.workspace = true
