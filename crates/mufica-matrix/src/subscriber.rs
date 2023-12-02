@@ -1,5 +1,5 @@
 use crate::{Result, MatrixConfig, MatrixTimeline};
-use matrix_sdk_ui::timeline::{Message, TimelineItem,RoomExt, Timeline, TimelineItemKind, TimelineItemContent};
+use matrix_sdk_ui::timeline::{Message, TimelineItem,RoomExt, Timeline, TimelineItemKind, TimelineItemContent, EventTimelineItem};
 use eyeball_im::VectorDiff;
 use imbl::Vector;
 
@@ -22,6 +22,12 @@ use matrix_sdk::{
     Client,LoopCtrl,Room, RoomState,
     room::{Messages, MessagesOptions},
     deserialized_responses::TimelineEvent,
+};
+use ruma::{
+    events::{
+        MessageLikeEventContent,
+        room::message::{ForwardThread, RoomMessageEventContentWithoutRelation, TextMessageEventContent, }
+    }
 };
 use rand::{distributions::Alphanumeric, thread_rng, Rng};
 use serde::{Deserialize, Serialize};
@@ -227,7 +233,7 @@ async fn on_room_message(event: OriginalSyncRoomMessageEvent, room: Room) {
     println!("[{room_name}] {}: {}", event.sender, text_content.body)
 }
 
-fn get_new_text_message(user_id: &UserId, event: &VectorDiff<Arc<TimelineItem>>) -> Option<(OwnedEventId, String)>{
+fn get_new_text_message(user_id: &UserId, event: &VectorDiff<Arc<TimelineItem>>) -> Option<(EventTimelineItem, String)>{
     if let VectorDiff::PushBack{value: timeline_item} = event {
         if let TimelineItemKind::Event(event_timeline_item) = timeline_item.kind() {
             let sender: OwnedUserId = event_timeline_item.sender().to_owned();
@@ -235,7 +241,7 @@ fn get_new_text_message(user_id: &UserId, event: &VectorDiff<Arc<TimelineItem>>)
             if sender == user_id { return None }
             if let TimelineItemContent::Message(message) = event_timeline_item.content() {
                 if let MessageType::Text(text_message_content) = message.msgtype() {
-                    return  Some((event_id, text_message_content.body.clone()));
+                    return  Some((event_timeline_item.clone(), text_message_content.body.clone()));
                 }
             }
         }
@@ -243,8 +249,10 @@ fn get_new_text_message(user_id: &UserId, event: &VectorDiff<Arc<TimelineItem>>)
     None
 }
 
-fn reply_text_message(room: &Room, message: &str, reply_to: &EventId) {
-    todo!()
+async fn reply_text_message(timeline: &Timeline , message: &str, reply_item: &EventTimelineItem) {
+    let event_content = RoomMessageEventContentWithoutRelation::new(MessageType::Text(TextMessageEventContent::markdown(message)));
+    
+    timeline.send_reply(event_content, reply_item, ForwardThread::Yes);
 }
 
 
@@ -305,9 +313,9 @@ impl<'a> MatrixClient<'a>{
 
 #[derive(Debug)]
 pub struct MatrixSubscriber{
-    pub room: Room,
     pub history: Arc<Mutex<MatrixTimeline>>,
     pub timeline: Timeline,
+    pub room: Room,
 }
 
 impl MatrixSubscriber{
@@ -319,9 +327,9 @@ impl MatrixSubscriber{
         history.deref_mut().append(timeline_items);
 
         while let Some(x) = timeline_stream.next().await {
-            if let Some((event_id, text)) = get_new_text_message(self.user_id().borrow(), &x) {
+            if let Some((event, text)) = get_new_text_message(self.user_id().borrow(), &x) {
                 let reply_text = f(&text).unwrap();
-                reply_text_message(&self.room, &reply_text, &event_id.borrow());
+                reply_text_message(&self.timeline, &reply_text, &event);
                     x.apply(self.history.lock().await.deref_mut());
             }
         }

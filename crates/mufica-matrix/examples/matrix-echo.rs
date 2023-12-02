@@ -18,15 +18,12 @@ struct Args {
 pub async fn main() -> Result<()>{
     let args = Args::parse();
     let config = MatrixConfig::read_file(&args.config).unwrap(); 
-    for client in config.to_clients().unwrap().into_iter() {
-        if args.daemon {
-            client.sync_once().await;
-        } else {
-            client.sync(|x| {
+    if args.daemon {
+        for (timeline, mut subscriber) in config.to_client().unwrap().subscribe().await.unwrap().into_iter() {
+            subscriber.sync(|x| {
                 println!("{:?}", x);
-                Ok(())
+                Ok(x.to_string())
             }).await;
-
         }
     }
     Ok(())
