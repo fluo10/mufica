@@ -3,7 +3,7 @@ pub mod config;
 pub mod errors;
 pub mod backend;
 pub mod history;
-pub mod worker;
+pub mod subscriber;
 
 
 use args::Args;
@@ -11,7 +11,7 @@ use config::{Config, FrontendConfig, BackendConfig, };
 use errors::Result;
 use backend::Backend;
 use history::{PlainHistory, PlainHistories, MutexHistory, MutexHistories};
-use worker::Worker;
+use subscriber::Subscriber;
 
 
 use std::fs;
@@ -34,15 +34,20 @@ async fn main() -> Result<()> {
         return Ok(());
     }
 
-    let workers: Vec<Worker> = Vec::new();
+    let mut subscribers: Vec<Subscriber> = Vec::new();
 
     // Try Initialize for each frontends and bachend
-    todo!();
+    for frontend_config in config.frontends.iter() {
+        for subscriber in frontend_config.to_subscribers()?.into_iter() {
+            subscribers.push(subscriber.into());
+        }
+
+    }
 
     if args.show_history {
-        for worker in workers.into_iter() {
+        for subscriber in subscribers.into_iter() {
             thread::spawn( move || {
-                worker.sync_once();
+                subscriber.sync_once();
             });
         }
 
@@ -51,9 +56,9 @@ async fn main() -> Result<()> {
         return Ok(());
     }
 
-    for worker in workers.into_iter() {
+    for subscriber in subscribers.into_iter() {
         thread::spawn( move || {
-            worker.sync();
+            subscriber.sync();
         });
     }
     Ok(())

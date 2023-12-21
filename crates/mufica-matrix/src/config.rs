@@ -23,7 +23,7 @@ impl MatrixConfig {
     pub fn to_client(&self) -> Result<MatrixClient> {
         todo!()
     }
-    pub fn to_clients(&self) -> Result<Vec<MatrixClient>> {
+    pub fn to_subscribers(&self) -> Result<Vec<MatrixSubscriber>> {
         todo!()
     }
 }

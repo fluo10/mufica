@@ -1,6 +1,11 @@
 #[cfg(feature="text-generation-webui")]
 mod text_generation_webui;
 
+use crate::{
+    errors::Result,
+    subscriber::Subscriber
+};
+
 #[cfg(feature="matrix")]
 pub use mufica_matrix::MatrixConfig;
 
@@ -43,6 +48,14 @@ impl Default for GlobalConfig {
 pub enum FrontendConfig{
     #[cfg(feature="matrix")]
     Matrix(MatrixConfig),
+}
+
+impl FrontendConfig {
+    pub fn to_subscribers(&self) -> Result<Vec<Subscriber>> {
+        Ok(match self {
+            FrontendConfig::Matrix(x) => x.to_subscribers()?.into_iter().map(|x| x.into()).collect()
+        })
+    }
 }
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
